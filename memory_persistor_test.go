@@ -16,10 +16,10 @@ func (p *MemoryPersistor) Persist(streamName string, streamId any, revision int,
 	key := fmt.Sprintf("%s:%s", streamName, streamId)
 	events := p.events[key]
 	if events == nil {
-		events = make([]PersistedEvent, 0)
+		p.events[key] = make([]PersistedEvent, 0)
 	}
 
-	events = append(events, PersistedEvent{
+	p.events[key] = append(events, PersistedEvent{
 		EventType: eventType,
 		EventData: eventData,
 	})

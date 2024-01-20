@@ -35,7 +35,11 @@ func TestEventsArePersistedAcrossSessions(t *testing.T) {
 		t.Error(err)
 	}
 
-	booking := res.(*Booking)
+	booking, ok := res.(*Booking)
+	if !ok {
+		t.Error("booking should be of type Booking")
+	}
+
 	if booking.PendingAmount() != 300 {
 		t.Error("pending amount should be 300")
 	}

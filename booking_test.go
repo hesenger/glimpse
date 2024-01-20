@@ -73,10 +73,11 @@ func (s *BookingSerializer) Deserialize(eventType string, eventData string) (any
 	return nil, errors.New("Unknown event type")
 }
 
-func (s *BookingSerializer) Aggregate(stream any, event any) any {
-	if stream == nil {
-		res := any(Booking{})
-		return &res
+func (s *BookingSerializer) Aggregate(session Session, stream any, untyped any) any {
+	switch event := untyped.(type) {
+	case *BookingCreated:
+		return NewBooking(session, event)
 	}
+
 	return stream
 }

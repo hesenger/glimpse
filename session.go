@@ -38,6 +38,9 @@ func (s *SessionImpl) Track(entry *EventEntry) {
 }
 
 func (s *SessionImpl) Find(streamName string, streamId any) (any, error) {
+	s.hydrating = true
+	defer func() { s.hydrating = false }()
+
 	serializer := s.provider.Get(streamName)
 	events := s.persistor.GetEvents(streamName, streamId)
 	var stream any
@@ -47,7 +50,7 @@ func (s *SessionImpl) Find(streamName string, streamId any) (any, error) {
 			return nil, err
 		}
 
-		stream = serializer.Aggregate(stream, obj)
+		stream = serializer.Aggregate(s, stream, obj)
 	}
 
 	return stream, nil

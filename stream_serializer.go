@@ -11,5 +11,5 @@ type StreamSerializer interface {
 
 	// Aggregate the event into the stream.
 	// Returns the aggregated stream.
-	Aggregate(stream any, event any) any
+	Aggregate(session Session, stream any, event any) any
 }
