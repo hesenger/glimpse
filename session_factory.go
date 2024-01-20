@@ -1,15 +1,17 @@
 package event_pulse
 
 type SessionFactory struct {
-	provider *StreamSerializerProvider
+	provider  *StreamSerializerProvider
+	persistor EventPersistor
 }
 
-func NewSessionFactory(provider *StreamSerializerProvider) *SessionFactory {
+func NewSessionFactory(provider *StreamSerializerProvider, persistor EventPersistor) *SessionFactory {
 	return &SessionFactory{
-		provider: provider,
+		provider:  provider,
+		persistor: persistor,
 	}
 }
 
-func (sf *SessionFactory) OpenSession() *Session {
-	return NewSession(sf.provider)
+func (sf *SessionFactory) OpenSession() Session {
+	return NewSession(sf.provider, sf.persistor)
 }

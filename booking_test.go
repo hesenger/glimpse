@@ -3,7 +3,7 @@ package event_pulse
 import "time"
 
 type Booking struct {
-	events EventStream
+	events *EventStream
 
 	bookingId  string
 	checkIn    time.Time
@@ -12,9 +12,9 @@ type Booking struct {
 	amountPaid float32
 }
 
-func NewBooking(session *Session, event BookingCreated) *Booking {
+func NewBooking(session Session, event *BookingCreated) *Booking {
 	res := Booking{
-		events:     EventStream{session: session},
+		events:     NewEventStream(session, "booking", event.BookingId),
 		bookingId:  event.BookingId,
 		checkIn:    event.CheckIn,
 		checkOut:   event.CheckOut,
@@ -40,7 +40,7 @@ func (s *Booking) PendingAmount() float32 {
 
 type BookingSerializer struct{}
 
-func (s *BookingSerializer) Serialize(stream *any) (string, string) {
+func (s *BookingSerializer) Serialize(stream any) (string, string) {
 	return "", ""
 }
 
@@ -48,7 +48,7 @@ func (s *BookingSerializer) Deserialize(eventType string, eventData string) any 
 	return Booking{}
 }
 
-func (s *BookingSerializer) Aggregate(stream *any, event *any) *any {
+func (s *BookingSerializer) Aggregate(stream any, event any) any {
 	if stream == nil {
 		res := any(Booking{})
 		return &res

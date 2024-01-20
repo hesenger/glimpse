@@ -1,13 +1,13 @@
 package event_pulse
 
 type EventStream struct {
-	session    *Session
+	session    Session
 	streamName string
 	streamId   any
 	events     []any
 }
 
-func NewEventStream(session *Session, streamName string, streamId any) *EventStream {
+func NewEventStream(session Session, streamName string, streamId any) *EventStream {
 	return &EventStream{
 		session:    session,
 		streamName: streamName,
@@ -18,5 +18,10 @@ func NewEventStream(session *Session, streamName string, streamId any) *EventStr
 
 func (s *EventStream) Append(event any) {
 	s.events = append(s.events, event)
-	s.session.Track(s)
+	s.session.Track(&EventEntry{
+		StreamName:  s.streamName,
+		StreamId:    s.streamId,
+		Revision:    len(s.events),
+		EventObject: event,
+	})
 }
