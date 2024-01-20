@@ -1,4 +1,4 @@
-package event_pulse
+package glimpse
 
 type SessionFactory struct {
 	provider  *StreamSerializerProvider

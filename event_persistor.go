@@ -1,4 +1,4 @@
-package event_pulse
+package glimpse
 
 type EventPersistor interface {
 	Persist(streamName string, streamId any, revision int, eventType string, eventData string)

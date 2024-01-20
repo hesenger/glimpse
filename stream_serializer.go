@@ -1,4 +1,4 @@
-package event_pulse
+package glimpse
 
 type StreamSerializer interface {
 	// Serialize an event of that stream.

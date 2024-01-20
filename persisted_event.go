@@ -1,4 +1,4 @@
-package event_pulse
+package glimpse
 
 type PersistedEvent struct {
 	EventType string
