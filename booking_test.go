@@ -38,6 +38,16 @@ type BookingCreated struct {
 	AmountPaid float32
 }
 
+type PaymentRegistered struct {
+	Date   time.Time
+	Amount float32
+}
+
+func (s *Booking) RegisterPayment(event *PaymentRegistered) {
+	s.amountPaid += event.Amount
+	s.events.Append(event)
+}
+
 func (s *Booking) PendingAmount() float32 {
 	return s.totalPrice - s.amountPaid
 }

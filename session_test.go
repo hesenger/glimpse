@@ -15,7 +15,7 @@ func init() {
 	sf = NewSessionFactory(provider, persistor)
 }
 
-func TestEventsArePersistedAcrossSessions(t *testing.T) {
+func createNewBooking() {
 	session := sf.OpenSession()
 	new := NewBooking(session, &BookingCreated{
 		BookingId:  "123",
@@ -27,9 +27,13 @@ func TestEventsArePersistedAcrossSessions(t *testing.T) {
 
 	session.Add(new)
 	session.Complete()
-	session.Close() // persist events
+	session.Close()
+}
 
-	session = sf.OpenSession()
+func TestEventsArePersistedAcrossSessions(t *testing.T) {
+	createNewBooking()
+
+	session := sf.OpenSession()
 	res, err := session.Find("booking", "123")
 	if err != nil {
 		t.Error(err)
@@ -45,5 +49,28 @@ func TestEventsArePersistedAcrossSessions(t *testing.T) {
 	}
 
 	session.Complete()
+	session.Close()
+}
+
+func TestNotCompletedSessionDontPersistEvents(t *testing.T) {
+	createNewBooking()
+
+	session := sf.OpenSession()
+	res, _ := session.Find("booking", "123")
+	booking := res.(*Booking)
+	booking.RegisterPayment(&PaymentRegistered{
+		Date:   time.Now(),
+		Amount: 100,
+	})
+
+	session.Close() // close without completing
+
+	session = sf.OpenSession()
+	prevstate, _ := session.Find("booking", "123")
+	booking = prevstate.(*Booking)
+	if booking.PendingAmount() != 300 {
+		t.Error("pending amount should be 300")
+	}
+
 	session.Close()
 }
