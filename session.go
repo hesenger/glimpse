@@ -3,9 +3,9 @@ package event_pulse
 type Session interface {
 	Add(stream any)
 	Track(entry *EventEntry)
-	Find(streamName string, streamId any) any
+	Find(streamName string, streamId any) (any, error)
 	Complete()
-	Close()
+	Close() error
 }
 
 type SessionImpl struct {
@@ -37,30 +37,40 @@ func (s *SessionImpl) Track(entry *EventEntry) {
 	s.pendingEvents = append(s.pendingEvents, entry)
 }
 
-func (s *SessionImpl) Find(streamName string, streamId any) any {
+func (s *SessionImpl) Find(streamName string, streamId any) (any, error) {
 	serializer := s.provider.Get(streamName)
 	events := s.persistor.GetEvents(streamName, streamId)
 	var stream any
 	for _, event := range events {
-		obj := serializer.Deserialize(event.EventType, event.EventData)
+		obj, err := serializer.Deserialize(event.EventType, event.EventData)
+		if err != nil {
+			return nil, err
+		}
+
 		stream = serializer.Aggregate(stream, obj)
 	}
 
-	return stream
+	return stream, nil
 }
 
 func (s *SessionImpl) Complete() {
 	s.completed = true
 }
 
-func (s *SessionImpl) Close() {
+func (s *SessionImpl) Close() error {
 	if !s.completed {
-		return
+		return nil
 	}
 
 	for _, entry := range s.pendingEvents {
 		serializer := s.provider.Get(entry.StreamName)
-		eventType, eventData := serializer.Serialize(entry.EventObject)
+		eventType, eventData, err := serializer.Serialize(entry.EventObject)
+		if err != nil {
+			return err
+		}
+
 		s.persistor.Persist(entry.StreamName, entry.StreamId, entry.Revision, eventType, eventData)
 	}
+
+	return nil
 }

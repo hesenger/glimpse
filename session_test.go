@@ -30,7 +30,10 @@ func TestEventsArePersistedAcrossSessions(t *testing.T) {
 	session.Close() // persist events
 
 	session = sf.OpenSession()
-	res := session.Find("booking", "123")
+	res, err := session.Find("booking", "123")
+	if err != nil {
+		t.Error(err)
+	}
 
 	booking := res.(*Booking)
 	if booking.PendingAmount() != 300 {

@@ -1,6 +1,10 @@
 package event_pulse
 
-import "time"
+import (
+	"encoding/json"
+	"errors"
+	"time"
+)
 
 type Booking struct {
 	events *EventStream
@@ -40,12 +44,33 @@ func (s *Booking) PendingAmount() float32 {
 
 type BookingSerializer struct{}
 
-func (s *BookingSerializer) Serialize(stream any) (string, string) {
-	return "", ""
+func (s *BookingSerializer) Serialize(event any) (string, string, error) {
+	switch event.(type) {
+	case *BookingCreated:
+		json, err := json.Marshal(event)
+		if err != nil {
+			return "", "", err
+		}
+
+		return "BookingCreated", string(json), nil
+	}
+
+	return "", "", errors.New("Unknown event type")
 }
 
-func (s *BookingSerializer) Deserialize(eventType string, eventData string) any {
-	return Booking{}
+func (s *BookingSerializer) Deserialize(eventType string, eventData string) (any, error) {
+	switch eventType {
+	case "BookingCreated":
+		var event BookingCreated
+		err := json.Unmarshal([]byte(eventData), &event)
+		if err != nil {
+			return nil, err
+		}
+
+		return &event, nil
+	}
+
+	return nil, errors.New("Unknown event type")
 }
 
 func (s *BookingSerializer) Aggregate(stream any, event any) any {
